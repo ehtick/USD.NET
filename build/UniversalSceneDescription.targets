@@ -1,38 +1,94 @@
 <Project>
 
   <!--
-    NuGet's RID-aware runtime asset deployment only copies files placed
-    *directly* under runtimes/<rid>/native/.  It does NOT recurse into
-    subdirectories, so the Pixar USD plugin tree (runtimes/<rid>/native/usd/**)
-    that ships with this package is not staged into the consumer's output
-    directory automatically.
+    UniversalSceneDescription - package-shipped staging targets
 
-    This .targets file (delivered via the package's build/ and buildTransitive/
-    folders) registers those plugin files as None items with a Link, so they
-    are copied next to the native USD libraries with their relative folder
-    layout preserved.  UsdRuntime.EnsureInitialized() then finds them via
-    PXR_PLUGINPATH_NAME / PlugRegistry.
+    Pixar's OpenUSD plugin loader (libplug) requires the *nested* directory
+    layout shipped inside this NuGet:
 
-    Files are small text descriptors (plugInfo.json, schema.usda, generated
-    schemas, glslfx, etc.) — copying every RID's tree keeps the logic simple
-    and avoids missing files when the effective RID differs from
-    $(RuntimeIdentifier) (e.g. RID-less builds, multi-RID publish, etc.).
+        runtimes/<rid>/native/usd/
+            ar/resources/plugInfo.json
+            sdf/resources/plugInfo.json
+            usdGeom/resources/plugInfo.json
+            ...
+
+    The .NET SDK's RID-aware asset resolver, however, flattens everything it
+    finds under `runtimes/<rid>/native/` into the consumer's bin root, which
+    collapses every per-plugin `plugInfo.json` onto the same target name and
+    breaks discovery with errors such as:
+
+        Coding Error: ... Failed to find plugin for ArDefaultResolver
+
+    To work around this without asking every consumer to wire up their own
+    Directory.Build.targets, this file (delivered inside the package via
+    `build/` and re-imported transitively via `buildTransitive/`) copies the
+    package's `runtimes/<rid>/native/usd/` tree directly into
+    `$(OutDir)usd/` (and `$(PublishDir)usd/`). `UsdRuntime.Initialize()`
+    probes `AppContext.BaseDirectory/usd` by default, so no consumer code
+    changes are needed.
+
+    Set `<DisableUsdPluginStaging>true</DisableUsdPluginStaging>` in the
+    consuming project to opt out (e.g. when shipping a custom USD build or
+    staging into a non-default location).
   -->
 
-  <ItemGroup>
-    <_UsdPluginPackageFiles Include="$(MSBuildThisFileDirectory)..\runtimes\**\native\usd\**\*"
-                            Exclude="$(MSBuildThisFileDirectory)..\runtimes\**\README.md" />
-  </ItemGroup>
+  <PropertyGroup>
+    <!--
+      Multiple PackageReference / ProjectReference paths can pull this
+      .targets in transitively. Each contributor would otherwise stage the
+      same byte-identical files under runtimes/<rid>/native/, tripping
+      NETSDK1152 on `dotnet publish`. The duplicates come from a single
+      package + single RID, so demoting the check to a warning is safe.
+    -->
+    <ErrorOnDuplicatePublishOutputFiles Condition="'$(ErrorOnDuplicatePublishOutputFiles)' == ''">false</ErrorOnDuplicatePublishOutputFiles>
+  </PropertyGroup>
 
-  <ItemGroup Condition="'@(_UsdPluginPackageFiles)' != ''">
-    <None Include="@(_UsdPluginPackageFiles)">
-      <Link>runtimes\%(RecursiveDir)%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <Pack>false</Pack>
-      <Visible>false</Visible>
-    </None>
-  </ItemGroup>
+  <!-- Resolve the per-RID plugin tree inside this package. -->
+  <Target Name="_UsdResolvePluginSource">
+    <PropertyGroup>
+      <!-- Walk up from build/ (or buildTransitive/) to the package root. -->
+      <_UsdPackageRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)..'))</_UsdPackageRoot>
+
+      <_UsdRid Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier)</_UsdRid>
+      <_UsdRid Condition="'$(_UsdRid)' == '' AND '$(NETCoreSdkRuntimeIdentifier)' != ''">$(NETCoreSdkRuntimeIdentifier)</_UsdRid>
+      <_UsdRid Condition="'$(_UsdRid)' == '' AND $([MSBuild]::IsOSPlatform('Linux'))">linux-x64</_UsdRid>
+      <_UsdRid Condition="'$(_UsdRid)' == '' AND $([MSBuild]::IsOSPlatform('OSX')) AND '$(PROCESSOR_ARCHITECTURE)' == 'ARM64'">osx-arm64</_UsdRid>
+      <_UsdRid Condition="'$(_UsdRid)' == '' AND $([MSBuild]::IsOSPlatform('OSX'))">osx-x64</_UsdRid>
+      <_UsdRid Condition="'$(_UsdRid)' == '' AND $([MSBuild]::IsOSPlatform('Windows'))">win-x64</_UsdRid>
+
+      <_UsdSourceDir>$(_UsdPackageRoot)runtimes\$(_UsdRid)\native\usd</_UsdSourceDir>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Stage into $(OutDir)usd/ after Build. -->
+  <Target Name="StageUsdPluginTree"
+          AfterTargets="Build"
+          DependsOnTargets="_UsdResolvePluginSource"
+          Condition="'$(DisableUsdPluginStaging)' != 'true'">
+    <ItemGroup>
+      <_UsdPluginTreeFiles Include="$(_UsdSourceDir)\**\*"
+                           Condition="Exists('$(_UsdSourceDir)')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_UsdPluginTreeFiles)"
+          DestinationFiles="@(_UsdPluginTreeFiles->'$(OutDir)usd\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"
+          Condition="'@(_UsdPluginTreeFiles)' != ''" />
+  </Target>
+
+  <!-- Stage into $(PublishDir)usd/ after Publish. -->
+  <Target Name="StageUsdPluginTreeOnPublish"
+          AfterTargets="Publish"
+          DependsOnTargets="_UsdResolvePluginSource"
+          Condition="'$(DisableUsdPluginStaging)' != 'true'">
+    <ItemGroup>
+      <_UsdPluginTreeFilesPub Include="$(_UsdSourceDir)\**\*"
+                              Condition="Exists('$(_UsdSourceDir)')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_UsdPluginTreeFilesPub)"
+          DestinationFiles="@(_UsdPluginTreeFilesPub->'$(PublishDir)usd\%(RecursiveDir)%(Filename)%(Extension)')"
+          SkipUnchangedFiles="true"
+          Condition="'@(_UsdPluginTreeFilesPub)' != ''" />
+  </Target>
 
 </Project>
 

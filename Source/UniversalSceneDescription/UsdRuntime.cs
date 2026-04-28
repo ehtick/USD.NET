@@ -26,7 +26,7 @@ namespace UniversalSceneDescription;
 /// Cross-platform: works on <b>Windows</b>, <b>Linux</b>, and <b>macOS</b>
 /// (provided the matching native binaries are present under
 /// <c>runtimes/&lt;rid&gt;/native/</c>). Initialization is idempotent and
-/// thread-safe — call it once at program startup, before touching any
+/// thread-safe - call it once at program startup, before touching any
 /// <c>pxr.*</c> type.
 /// </para>
 /// </remarks>
@@ -140,7 +140,7 @@ public static class UsdRuntime
         // dependencies of the USD libraries (tbb, Imath, …) resolve from the
         // same directory. The .NET runtime already searches AppBase first for
         // direct P/Invoke calls, so the directly-imported libraries are
-        // usually fine without this — but their inter-library dependencies
+        // usually fine without this - but their inter-library dependencies
         // are loaded by the OS loader, which honours these env vars on POSIX
         // systems and PATH on Windows.
         string searchPathVar =
@@ -153,7 +153,7 @@ public static class UsdRuntime
 
         PrependToEnvironmentPath(searchPathVar, nativeDirectory);
 
-        // On macOS additionally seed the fallback search path — DYLD_LIBRARY_PATH
+        // On macOS additionally seed the fallback search path - DYLD_LIBRARY_PATH
         // is stripped from hardened/SIP-protected processes, so the fallback
         // is often the only one that survives.
         if (OperatingSystem.IsMacOS())

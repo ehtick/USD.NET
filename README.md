@@ -74,9 +74,19 @@ To suppress the bundled native runtime entirely (rare - only useful if you ship
 your own USD build):
 
 ```xml
-<PackageReference Include="UniversalSceneDescription" Version="6.1.0">
+<PackageReference Include="UniversalSceneDescription" Version="7.1.0">
   <ExcludeAssets>runtime</ExcludeAssets>
 </PackageReference>
+```
+
+Opt out of the automatic plugin-tree staging (rare - only needed if you
+want to stage the `usd/` plugin folder somewhere other than next to the
+executable, or you ship your own USD build):
+
+```xml
+<PropertyGroup>
+  <DisableUsdPluginStaging>true</DisableUsdPluginStaging>
+</PropertyGroup>
 ```
 
 ## Platform support
@@ -89,7 +99,7 @@ your own USD build):
 | `osx-arm64` | ✅ Shipping | `runtimes/osx-arm64/native/` |
 
 The csproj globs `runtimes/**/*`, so refreshing any per-RID folder with a newer
-platform USD build is enough to ship updated native support — no csproj edit
+platform USD build is enough to ship updated native support - no csproj edit
 needed. Each per-RID folder includes runtime notes and currently ships binaries
 from Unity's `com.unity.usd.core` plugin distribution.
 
