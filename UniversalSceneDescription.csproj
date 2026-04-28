@@ -24,28 +24,21 @@
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>UniversalSceneDescription</PackageId>
-    <Version>7.0.0</Version>
+    <Version>7.0.1</Version>
     <Title>Universal Scene Description for .NET</Title>
     <Authors>Pixar, Unity, 3DEngine</Authors>
     <Company>3DEngine</Company>
     <Copyright> Pixar, Unity Technologies, 3DEngine. Distributed under the Mozilla Public License 2.0.</Copyright>
     <Description>Pixar's OpenUSD (Universal Scene Description) for .NET 10 — bundles the managed USD.NET assembly (from Unity's com.unity.usd.core), per-RID native USD runtime libraries, and the Pixar plugin tree. The .NET SDK auto-deploys native assets to the consumer's output directory via the standard runtimes/&lt;rid&gt;/native/ convention. Native binaries are included for win-x64, linux-x64, osx-x64, and osx-arm64.</Description>
     <PackageTags>USD;OpenUSD;Pixar;USD.NET;UniversalSceneDescription;3D;Scene;Graphics;Unity;3DEngine</PackageTags>
-    <PackageProjectUrl>https://github.com/EggyStudio/USD.NET</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/EggyStudio/USD.NET</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/EggyStudio/UniversalSceneDescription</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/EggyStudio/UniversalSceneDescription</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
     <ApplicationIcon>.github\assets\favicon.ico</ApplicationIcon>
-    <PackageReleaseNotes>
-      7.0.0
-      - Consolidated to an idiomatic .NET / NuGet layout (Source/, runtimes/&lt;rid&gt;/native/).
-      - Native USD runtime libraries and Pixar plugin trees shipped under runtimes/&lt;rid&gt;/native/ for win-x64, linux-x64, osx-x64, and osx-arm64 - auto-deployed by the .NET SDK to consumer output.
-      - New UniversalSceneDescription.UsdRuntime helper for one-call native + plugin initialization.
-      - Source Link, deterministic build, symbol package (.snupkg).
-    </PackageReleaseNotes>
 
     <!-- Reproducible / debuggable -->
     <Deterministic>true</Deterministic>
@@ -101,6 +94,27 @@
           PackagePath="runtimes\%(RecursiveDir)%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest"
           Link="runtimes\%(RecursiveDir)%(Filename)%(Extension)"
+          Visible="false" />
+  </ItemGroup>
+
+  <!--
+    NuGet's runtime-asset deployment only stages files placed *directly* under
+    runtimes/&lt;rid&gt;/native/; it does not recurse into subdirectories, so the
+    Pixar USD plugin tree (runtimes/&lt;rid&gt;/native/usd/**) shipped in this
+    package never reaches the consumer's bin/ output on its own.
+
+    Ship a build/ + buildTransitive/ .targets pair so that any consuming
+    project (direct or transitive PackageReference) explicitly copies the
+    plugin tree into its output directory alongside the native USD libraries.
+  -->
+  <ItemGroup>
+    <None Include="build\UniversalSceneDescription.targets"
+          Pack="true"
+          PackagePath="build\$(TargetFramework)\UniversalSceneDescription.targets;build\UniversalSceneDescription.targets"
+          Visible="false" />
+    <None Include="buildTransitive\UniversalSceneDescription.targets"
+          Pack="true"
+          PackagePath="buildTransitive\$(TargetFramework)\UniversalSceneDescription.targets;buildTransitive\UniversalSceneDescription.targets"
           Visible="false" />
   </ItemGroup>
   <ItemGroup>

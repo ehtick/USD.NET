@@ -1,0 +1,38 @@
+<Project>
+
+  <!--
+    NuGet's RID-aware runtime asset deployment only copies files placed
+    *directly* under runtimes/<rid>/native/.  It does NOT recurse into
+    subdirectories, so the Pixar USD plugin tree (runtimes/<rid>/native/usd/**)
+    that ships with this package is not staged into the consumer's output
+    directory automatically.
+
+    This .targets file (delivered via the package's build/ and buildTransitive/
+    folders) registers those plugin files as None items with a Link, so they
+    are copied next to the native USD libraries with their relative folder
+    layout preserved.  UsdRuntime.EnsureInitialized() then finds them via
+    PXR_PLUGINPATH_NAME / PlugRegistry.
+
+    Files are small text descriptors (plugInfo.json, schema.usda, generated
+    schemas, glslfx, etc.) — copying every RID's tree keeps the logic simple
+    and avoids missing files when the effective RID differs from
+    $(RuntimeIdentifier) (e.g. RID-less builds, multi-RID publish, etc.).
+  -->
+
+  <ItemGroup>
+    <_UsdPluginPackageFiles Include="$(MSBuildThisFileDirectory)..\runtimes\**\native\usd\**\*"
+                            Exclude="$(MSBuildThisFileDirectory)..\runtimes\**\README.md" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'@(_UsdPluginPackageFiles)' != ''">
+    <None Include="@(_UsdPluginPackageFiles)">
+      <Link>runtimes\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <Pack>false</Pack>
+      <Visible>false</Visible>
+    </None>
+  </ItemGroup>
+
+</Project>
+

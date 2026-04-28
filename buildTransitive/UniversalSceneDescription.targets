@@ -1,0 +1,28 @@
+<Project>
+
+  <!--
+    Transitive variant of build/UniversalSceneDescription.targets so that
+    projects which depend on a project/package that depends on
+    UniversalSceneDescription (rather than referencing it directly) still get
+    the Pixar USD plugin tree staged into their output directory.
+
+    Keep this file in sync with build/UniversalSceneDescription.targets.
+  -->
+
+  <ItemGroup>
+    <_UsdPluginPackageFiles Include="$(MSBuildThisFileDirectory)..\runtimes\**\native\usd\**\*"
+                            Exclude="$(MSBuildThisFileDirectory)..\runtimes\**\README.md" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'@(_UsdPluginPackageFiles)' != ''">
+    <None Include="@(_UsdPluginPackageFiles)">
+      <Link>runtimes\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <Pack>false</Pack>
+      <Visible>false</Visible>
+    </None>
+  </ItemGroup>
+
+</Project>
+
