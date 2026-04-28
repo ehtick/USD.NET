@@ -1,59 +1,124 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<Title>Universal Scene Description for .NET</Title>
-		<PackageId>UniversalSceneDescription</PackageId>
-		<PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<Authors>Pixar, Unity, 3DEngine</Authors>
-		<PackageProjectUrl>https://openusd.org/release/index.html</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/CanTalat-Yakan/USD.NET</RepositoryUrl>
-		<PackageIcon>USDLogo400x400.png</PackageIcon>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageTags>Universal Scene Description USD.NET OpenUSD 3DEngine</PackageTags>
-		<Version>6.0.0</Version>
-		<ApplicationIcon>favicon.ico</ApplicationIcon>
-		<PackageReleaseNotes>OpenUSD DLL's for DotNet from the Unity USD C# SDK 'com.unity.usd.core'</PackageReleaseNotes>
-	</PropertyGroup>
+<Project Sdk="Microsoft.NET.Sdk">
 
-	<ItemGroup>
-		<None Include="Assets\Resources\USD.NET.dll">
-			<PackagePath>lib\net8.0\</PackagePath>
-			<Pack>true</Pack>
-		</None>
-	</ItemGroup>
-	
-	<ItemGroup>
-		<Content Include="Assets\Resources\DLLs\**\*">
-			<PackagePath>runtimes/win-x64/native</PackagePath>
-			<Pack>true</Pack>
-		</Content>
-		<Content Include="Assets\Resources\USD\**\*">
-			<PackagePath>runtimes/win-x64/native\usd</PackagePath>
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<Pack>true</Pack>
-		</Content>
-	</ItemGroup>
+  <PropertyGroup>
+    <!-- Build -->
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RootNamespace>UniversalSceneDescription</RootNamespace>
+    <AssemblyName>UniversalSceneDescription</AssemblyName>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
 
-	<ItemGroup>
-		<None Include="README.md">
-			<PackagePath>\</PackagePath>
-			<Pack>True</Pack>
-		</None>
-		<None Include="USDLogo400x400.png">
-			<PackagePath>\</PackagePath>
-			<Pack>True</Pack>
-		</None>
-	</ItemGroup>
+    <!-- Only compile our curated source tree (skip default recursive globbing). -->
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 
-	<ItemGroup>
-		<EmbeddedResource Include="favicon.ico" />
-		<EmbeddedResource Include="USDLogo400x400.png">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</EmbeddedResource>
-	</ItemGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;SYSLIB1054</NoWarn>
+  </PropertyGroup>
+
+  <!-- NuGet package metadata -->
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>UniversalSceneDescription</PackageId>
+    <Version>7.0.0</Version>
+    <Title>Universal Scene Description for .NET</Title>
+    <Authors>Pixar, Unity, 3DEngine</Authors>
+    <Company>3DEngine</Company>
+    <Copyright> Pixar, Unity Technologies, 3DEngine. Distributed under the Mozilla Public License 2.0.</Copyright>
+    <Description>Pixar's OpenUSD (Universal Scene Description) for .NET 10 — bundles the managed USD.NET assembly (from Unity's com.unity.usd.core), per-RID native USD runtime libraries, and the Pixar plugin tree. The .NET SDK auto-deploys native assets to the consumer's output directory via the standard runtimes/&lt;rid&gt;/native/ convention. Ships native binaries for win-x64, linux-x64, osx-x64, and osx-arm64 when those directories are populated.</Description>
+    <PackageTags>USD;OpenUSD;Pixar;USD.NET;UniversalSceneDescription;3D;Scene;Graphics;Unity;3DEngine</PackageTags>
+    <PackageProjectUrl>https://github.com/CanTalat-Yakan/USD.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/CanTalat-Yakan/USD.NET</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <ApplicationIcon>.github\assets\favicon.ico</ApplicationIcon>
+    <PackageReleaseNotes>
+      7.0.0
+      - Restructured to an idiomatic .NET / NuGet layout (Source/, runtimes/win-x64/native/).
+      - Native USD runtime libraries and Pixar plugin trees shipped under runtimes/&lt;rid&gt;/native/ for win-x64, linux-x64, osx-x64, and osx-arm64 - auto-deployed by the .NET SDK to consumer output.
+      - New UniversalSceneDescription.UsdRuntime helper for one-call native + plugin initialization.
+      - Source Link, deterministic build, symbol package (.snupkg).
+    </PackageReleaseNotes>
+
+    <!-- Reproducible / debuggable -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true' or '$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Curated managed sources -->
+  <ItemGroup>
+    <Compile Include="Source/UniversalSceneDescription/**/*.cs"
+             Exclude="Source/UniversalSceneDescription/bin/**;Source/UniversalSceneDescription/obj/**" />
+  </ItemGroup>
+
+  <!-- Reference the Unity-built USD.NET managed assembly so package
+       consumers can compile against the pxr.* types. -->
+  <ItemGroup>
+    <Reference Include="USD.NET">
+      <HintPath>Source\UniversalSceneDescription\USD.NET.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- ===== Package contents ===== -->
+
+  <!-- Branding / docs -->
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include=".github\assets\USDLogo400x400.png" Pack="true" PackagePath="\icon.png" Visible="false" />
+  </ItemGroup>
+
+  <!-- Managed USD.NET assembly: shipped under lib/net10.0/ -->
+  <ItemGroup>
+    <None Include="Source\UniversalSceneDescription\USD.NET.dll"
+          Pack="true"
+          PackagePath="lib\net10.0\USD.NET.dll"
+          CopyToOutputDirectory="PreserveNewest"
+          Visible="false" />
+  </ItemGroup>
+
+  <!-- Native runtime: per-RID libraries + Pixar plugin tree.
+       The .NET SDK automatically deploys everything packed under
+       runtimes/<rid>/native/ to the consumer's output directory for the
+       matching runtime identifier, preserving the relative subdirectory
+       layout (so usd/usdGeom/resources/plugInfo.json lands at
+       $(OutDir)usd/usdGeom/resources/plugInfo.json).
+
+       The %(RecursiveDir) wildcard captures the '<rid>/native/...' segment
+       so all of win-x64, linux-x64, osx-x64, osx-arm64 are picked up
+       automatically — drop binaries into the corresponding folder and they
+       ship in the next pack.
+
+       Empty per-RID folders (containing only a README.md) are filtered out
+       so the README files don't end up in the package. -->
+  <ItemGroup>
+    <None Include="runtimes\**\*"
+          Exclude="runtimes\**\README.md"
+          Pack="true"
+          PackagePath="runtimes\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest"
+          Link="runtimes\%(RecursiveDir)%(Filename)%(Extension)"
+          Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <EditorConfigFiles Remove=".editorconfig" />
+  </ItemGroup>
+
 </Project>
+
