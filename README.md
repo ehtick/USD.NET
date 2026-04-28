@@ -1,4 +1,4 @@
-![Universal Scene Description for .NET](https://raw.githubusercontent.com/CanTalat-Yakan/USD.NET/main/.github/assets/Header.png)
+![Universal Scene Description for .NET](https://raw.githubusercontent.com/EggyStudio/USD.NET/main/.github/assets/Header.png)
 
 # Universal Scene Description for .NET
 
@@ -122,5 +122,5 @@ set on every platform so libplug discovers the bundled plugin tree.
 ---
 
 Issues, PRs and contributions welcome at
-[github.com/CanTalat-Yakan/USD.NET](https://github.com/CanTalat-Yakan/USD.NET).
+[github.com/EggyStudio/USD.NET](https://github.com/EggyStudio/USD.NET).
 
