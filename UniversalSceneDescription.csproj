@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Build -->
+    <!-- Build settings -->
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -12,7 +12,7 @@
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
 
-    <!-- Only compile our curated source tree (skip default recursive globbing). -->
+    <!-- Compile only curated source items below. -->
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -29,7 +29,7 @@
     <Authors>Pixar, Unity, 3DEngine</Authors>
     <Company>3DEngine</Company>
     <Copyright> Pixar, Unity Technologies, 3DEngine. Distributed under the Mozilla Public License 2.0.</Copyright>
-    <Description>Pixar's OpenUSD (Universal Scene Description) for .NET 10 — bundles the managed USD.NET assembly (from Unity's com.unity.usd.core), per-RID native USD runtime libraries, and the Pixar plugin tree. The .NET SDK auto-deploys native assets to the consumer's output directory via the standard runtimes/&lt;rid&gt;/native/ convention. Ships native binaries for win-x64, linux-x64, osx-x64, and osx-arm64 when those directories are populated.</Description>
+    <Description>Pixar's OpenUSD (Universal Scene Description) for .NET 10 — bundles the managed USD.NET assembly (from Unity's com.unity.usd.core), per-RID native USD runtime libraries, and the Pixar plugin tree. The .NET SDK auto-deploys native assets to the consumer's output directory via the standard runtimes/&lt;rid&gt;/native/ convention. Native binaries are included for win-x64, linux-x64, osx-x64, and osx-arm64.</Description>
     <PackageTags>USD;OpenUSD;Pixar;USD.NET;UniversalSceneDescription;3D;Scene;Graphics;Unity;3DEngine</PackageTags>
     <PackageProjectUrl>https://github.com/CanTalat-Yakan/USD.NET</PackageProjectUrl>
     <RepositoryUrl>https://github.com/CanTalat-Yakan/USD.NET</RepositoryUrl>
@@ -41,7 +41,7 @@
     <ApplicationIcon>.github\assets\favicon.ico</ApplicationIcon>
     <PackageReleaseNotes>
       7.0.0
-      - Restructured to an idiomatic .NET / NuGet layout (Source/, runtimes/win-x64/native/).
+      - Consolidated to an idiomatic .NET / NuGet layout (Source/, runtimes/&lt;rid&gt;/native/).
       - Native USD runtime libraries and Pixar plugin trees shipped under runtimes/&lt;rid&gt;/native/ for win-x64, linux-x64, osx-x64, and osx-arm64 - auto-deployed by the .NET SDK to consumer output.
       - New UniversalSceneDescription.UsdRuntime helper for one-call native + plugin initialization.
       - Source Link, deterministic build, symbol package (.snupkg).
@@ -61,7 +61,7 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
   </ItemGroup>
 
-  <!-- Curated managed sources -->
+  <!-- Managed source files -->
   <ItemGroup>
     <Compile Include="Source/UniversalSceneDescription/**/*.cs"
              Exclude="Source/UniversalSceneDescription/bin/**;Source/UniversalSceneDescription/obj/**" />
@@ -75,8 +75,6 @@
       <Private>false</Private>
     </Reference>
   </ItemGroup>
-
-  <!-- ===== Package contents ===== -->
 
   <!-- Branding / docs -->
   <ItemGroup>
@@ -93,20 +91,9 @@
           Visible="false" />
   </ItemGroup>
 
-  <!-- Native runtime: per-RID libraries + Pixar plugin tree.
-       The .NET SDK automatically deploys everything packed under
-       runtimes/<rid>/native/ to the consumer's output directory for the
-       matching runtime identifier, preserving the relative subdirectory
-       layout (so usd/usdGeom/resources/plugInfo.json lands at
-       $(OutDir)usd/usdGeom/resources/plugInfo.json).
-
-       The %(RecursiveDir) wildcard captures the '<rid>/native/...' segment
-       so all of win-x64, linux-x64, osx-x64, osx-arm64 are picked up
-       automatically — drop binaries into the corresponding folder and they
-       ship in the next pack.
-
-       Empty per-RID folders (containing only a README.md) are filtered out
-       so the README files don't end up in the package. -->
+  <!-- Native runtime: package all per-RID assets under runtimes/&lt;rid&gt;/native/.
+       %(RecursiveDir) keeps subfolder layout (including usd/* plugin files).
+       README placeholders are excluded from the package. -->
   <ItemGroup>
     <None Include="runtimes\**\*"
           Exclude="runtimes\**\README.md"
