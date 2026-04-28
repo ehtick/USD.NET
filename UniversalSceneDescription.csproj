@@ -24,7 +24,7 @@
     <IsPackable>true</IsPackable>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>UniversalSceneDescription</PackageId>
-    <Version>7.0.1</Version>
+    <Version>7.0.2</Version>
     <Title>Universal Scene Description for .NET</Title>
     <Authors>Pixar, Unity, 3DEngine</Authors>
     <Company>3DEngine</Company>
