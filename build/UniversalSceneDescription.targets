@@ -32,7 +32,7 @@
     staging into a non-default location).
   -->
 
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(ErrorOnDuplicatePublishOutputFiles)' == ''">
     <!--
       Multiple PackageReference / ProjectReference paths can pull this
       .targets in transitively. Each contributor would otherwise stage the
@@ -40,7 +40,7 @@
       NETSDK1152 on `dotnet publish`. The duplicates come from a single
       package + single RID, so demoting the check to a warning is safe.
     -->
-    <ErrorOnDuplicatePublishOutputFiles Condition="'$(ErrorOnDuplicatePublishOutputFiles)' == ''">false</ErrorOnDuplicatePublishOutputFiles>
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
   <!-- Resolve the per-RID plugin tree inside this package. -->
@@ -49,14 +49,23 @@
       <!-- Walk up from build/ (or buildTransitive/) to the package root. -->
       <_UsdPackageRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)..'))</_UsdPackageRoot>
 
+      <!--
+        Use RuntimeInformation.ProcessArchitecture for the host-arch fallback
+        instead of PROCESSOR_ARCHITECTURE (which is a Windows-only env var and
+        is never set on macOS/Linux, causing Apple Silicon hosts to silently
+        resolve to osx-x64 and stage the wrong plugin tree).
+      -->
+      <_UsdHostArch>$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture)</_UsdHostArch>
+
       <_UsdRid Condition="'$(RuntimeIdentifier)' != ''">$(RuntimeIdentifier)</_UsdRid>
       <_UsdRid Condition="'$(_UsdRid)' == '' AND '$(NETCoreSdkRuntimeIdentifier)' != ''">$(NETCoreSdkRuntimeIdentifier)</_UsdRid>
       <_UsdRid Condition="'$(_UsdRid)' == '' AND $([MSBuild]::IsOSPlatform('Linux'))">linux-x64</_UsdRid>
-      <_UsdRid Condition="'$(_UsdRid)' == '' AND $([MSBuild]::IsOSPlatform('OSX')) AND '$(PROCESSOR_ARCHITECTURE)' == 'ARM64'">osx-arm64</_UsdRid>
+      <_UsdRid Condition="'$(_UsdRid)' == '' AND $([MSBuild]::IsOSPlatform('OSX')) AND '$(_UsdHostArch)' == 'Arm64'">osx-arm64</_UsdRid>
       <_UsdRid Condition="'$(_UsdRid)' == '' AND $([MSBuild]::IsOSPlatform('OSX'))">osx-x64</_UsdRid>
+      <_UsdRid Condition="'$(_UsdRid)' == '' AND $([MSBuild]::IsOSPlatform('Windows')) AND '$(_UsdHostArch)' == 'Arm64'">win-arm64</_UsdRid>
       <_UsdRid Condition="'$(_UsdRid)' == '' AND $([MSBuild]::IsOSPlatform('Windows'))">win-x64</_UsdRid>
 
-      <_UsdSourceDir>$(_UsdPackageRoot)runtimes\$(_UsdRid)\native\usd</_UsdSourceDir>
+      <_UsdSourceDir>$(_UsdPackageRoot)runtimes/$(_UsdRid)/native/usd</_UsdSourceDir>
     </PropertyGroup>
   </Target>
 
@@ -66,11 +75,11 @@
           DependsOnTargets="_UsdResolvePluginSource"
           Condition="'$(DisableUsdPluginStaging)' != 'true'">
     <ItemGroup>
-      <_UsdPluginTreeFiles Include="$(_UsdSourceDir)\**\*"
+      <_UsdPluginTreeFiles Include="$(_UsdSourceDir)/**/*"
                            Condition="Exists('$(_UsdSourceDir)')" />
     </ItemGroup>
     <Copy SourceFiles="@(_UsdPluginTreeFiles)"
-          DestinationFiles="@(_UsdPluginTreeFiles->'$(OutDir)usd\%(RecursiveDir)%(Filename)%(Extension)')"
+          DestinationFiles="@(_UsdPluginTreeFiles->'$(OutDir)usd/%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true"
           Condition="'@(_UsdPluginTreeFiles)' != ''" />
   </Target>
@@ -81,11 +90,11 @@
           DependsOnTargets="_UsdResolvePluginSource"
           Condition="'$(DisableUsdPluginStaging)' != 'true'">
     <ItemGroup>
-      <_UsdPluginTreeFilesPub Include="$(_UsdSourceDir)\**\*"
+      <_UsdPluginTreeFilesPub Include="$(_UsdSourceDir)/**/*"
                               Condition="Exists('$(_UsdSourceDir)')" />
     </ItemGroup>
     <Copy SourceFiles="@(_UsdPluginTreeFilesPub)"
-          DestinationFiles="@(_UsdPluginTreeFilesPub->'$(PublishDir)usd\%(RecursiveDir)%(Filename)%(Extension)')"
+          DestinationFiles="@(_UsdPluginTreeFilesPub->'$(PublishDir)usd/%(RecursiveDir)%(Filename)%(Extension)')"
           SkipUnchangedFiles="true"
           Condition="'@(_UsdPluginTreeFilesPub)' != ''" />
   </Target>
