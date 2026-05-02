@@ -44,8 +44,8 @@
 
   <!-- Branding / docs -->
   <ItemGroup>
-    <None Include="README.md" Pack="true" />
-    <None Include=".github\assets\*" Pack="true" Visible="true" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include=".github\assets\*" Pack="true" PackagePath="/" Visible="true" />
   </ItemGroup>
 
   <!-- Import the same staging logic locally so this project's own bin/ output
