@@ -14,6 +14,8 @@
 
     <!-- Compile only curated source items below. -->
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591;SYSLIB1054</NoWarn>
@@ -54,17 +56,21 @@
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
   </ItemGroup>
 
+  <!-- Import the same staging logic locally so this project's own bin/ output
+       mirrors what downstream consumers receive. -->
+  <Import Project="build/UniversalSceneDescription.targets" />
+
   <!-- Managed source files -->
   <ItemGroup>
-    <Compile Include="Source/UniversalSceneDescription/**/*.cs"
-             Exclude="Source/UniversalSceneDescription/bin/**;Source/UniversalSceneDescription/obj/**" />
+    <Compile Include="src/**/*.cs"
+             Exclude="src/bin/**;src/obj/**" />
   </ItemGroup>
 
   <!-- Reference the Unity-built USD.NET managed assembly so package
        consumers can compile against the pxr.* types. -->
   <ItemGroup>
     <Reference Include="USD.NET">
-      <HintPath>Source\UniversalSceneDescription\USD.NET.dll</HintPath>
+      <HintPath>src\USD.NET.dll</HintPath>
       <Private>false</Private>
     </Reference>
   </ItemGroup>
@@ -72,19 +78,18 @@
   <!-- Branding / docs -->
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
-    <None Include=".github\assets\USDLogo400x400.png" Pack="true" PackagePath="\icon.png" Visible="false" />
+    <None Include=".github\assets\USDLogo400x400.png" Pack="true" PackagePath="\icon.png" />
   </ItemGroup>
 
   <!-- Managed USD.NET assembly: shipped under lib/net10.0/ -->
   <ItemGroup>
-    <None Include="Source\UniversalSceneDescription\USD.NET.dll"
+    <None Include="src\USD.NET.dll"
           Pack="true"
           PackagePath="lib\net10.0\USD.NET.dll"
-          CopyToOutputDirectory="PreserveNewest"
-          Visible="false" />
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <!-- Native runtime: package all per-RID assets under runtimes/&lt;rid&gt;/native/.
+  <!-- Native runtime: package all per-RID assets under runtimes/<rid>/native/.
        %(RecursiveDir) keeps subfolder layout (including usd/* plugin files).
        README placeholders are excluded from the package. -->
   <ItemGroup>
@@ -93,8 +98,7 @@
           Pack="true"
           PackagePath="runtimes\%(RecursiveDir)%(Filename)%(Extension)"
           CopyToOutputDirectory="PreserveNewest"
-          Link="runtimes\%(RecursiveDir)%(Filename)%(Extension)"
-          Visible="false" />
+          Link="runtimes\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!--
@@ -112,12 +116,10 @@
   <ItemGroup>
     <None Include="build\UniversalSceneDescription.targets"
           Pack="true"
-          PackagePath="build\UniversalSceneDescription.targets"
-          Visible="false" />
+          PackagePath="build\UniversalSceneDescription.targets" />
     <None Include="buildTransitive\UniversalSceneDescription.targets"
           Pack="true"
-          PackagePath="buildTransitive\UniversalSceneDescription.targets"
-          Visible="false" />
+          PackagePath="buildTransitive\UniversalSceneDescription.targets" />
   </ItemGroup>
   <ItemGroup>
     <EditorConfigFiles Remove=".editorconfig" />
