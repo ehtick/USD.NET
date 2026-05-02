@@ -1,4 +1,4 @@
-![Universal Scene Description for .NET](https://raw.githubusercontent.com/EggyStudio/UniversalSceneDescription/main/.github/assets/Header.png)
+![Universal Scene Description for .NET](https://raw.githubusercontent.com/EggyStudio/UniversalSceneDescription/main/.github/assets/header.png)
 
 # Universal Scene Description for .NET
 

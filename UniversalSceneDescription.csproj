@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Build settings -->
     <TargetFramework>net10.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -39,21 +38,14 @@
     <PackageLicenseExpression>MPL-2.0</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageIcon>icon.png</PackageIcon>
-    <ApplicationIcon>.github\assets\favicon.ico</ApplicationIcon>
-
-    <!-- Reproducible / debuggable -->
+    <PackageIcon>logo.png</PackageIcon>
     <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true' or '$(CI)' == 'true'">true</ContinuousIntegrationBuild>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <DebugType>portable</DebugType>
   </PropertyGroup>
 
+  <!-- Branding / docs -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
+    <None Include="README.md" Pack="true" />
+    <None Include=".github\assets\*" Pack="true" Visible="true" />
   </ItemGroup>
 
   <!-- Import the same staging logic locally so this project's own bin/ output
@@ -73,12 +65,6 @@
       <HintPath>src\USD.NET.dll</HintPath>
       <Private>false</Private>
     </Reference>
-  </ItemGroup>
-
-  <!-- Branding / docs -->
-  <ItemGroup>
-    <None Include="README.md" Pack="true" PackagePath="\" />
-    <None Include=".github\assets\USDLogo400x400.png" Pack="true" PackagePath="\icon.png" />
   </ItemGroup>
 
   <!-- Managed USD.NET assembly: shipped under lib/net10.0/ -->
