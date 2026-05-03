@@ -23,7 +23,7 @@
   <!-- NuGet package metadata -->
   <PropertyGroup>
     <IsPackable>true</IsPackable>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>UniversalSceneDescription</PackageId>
     <Version>7.3.0</Version>
     <Title>Universal Scene Description for .NET</Title>
