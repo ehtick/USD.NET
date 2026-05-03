@@ -48,6 +48,13 @@
     <None Include=".github\assets\*" Pack="true" PackagePath="/" Visible="true" />
   </ItemGroup>
 
+  <!-- Surface GitHub Actions workflows in the IDE solution view. 
+       Not packed, not copied to output. -->
+  <ItemGroup>
+    <None Include=".github/workflows/*.yml" Pack="false" Visible="true"/>
+    <None Include=".github/workflows/*.yaml" Pack="false" Visible="true"/>
+  </ItemGroup>
+
   <!-- Import the same staging logic locally so this project's own bin/ output
        mirrors what downstream consumers receive. -->
   <Import Project="build/UniversalSceneDescription.targets" />

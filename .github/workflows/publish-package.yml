@@ -1,0 +1,90 @@
+name: publish-package
+# Packs UniversalSceneDescription into a NuGet package and publishes it to
+# GitHub Packages
+# (https://github.com/EggyStudio/UniversalSceneDescription/packages) so every
+# change to the package-shaping inputs produces a downloadable, versioned
+# package.
+#
+# Versioning:
+#   The csproj <Version> only encodes the base "major.minor" we want to ship
+#   (parsed below); the patch component is replaced with ${{ github.run_number }}
+#   so every run of this workflow yields a strictly increasing version like
+#   7.3.<run_number>. No commits back to the repo are needed - the bumped
+#   version is injected via /p:Version=... at pack time.
+#
+# Trigger model:
+#   - push: republishes whenever package-shaping inputs change on main
+#     (csproj metadata, README, logo / branding assets, .targets files, the
+#     curated managed sources, or the committed native binaries under
+#     runtimes/).
+#   - workflow_dispatch: lets you republish on demand.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "UniversalSceneDescription.csproj"
+      - "README.md"
+      - ".github/assets/**"
+      - "build/**"
+      - "buildTransitive/**"
+      - "src/**"
+      - "runtimes/**"
+      - ".github/workflows/publish-package.yml"
+  workflow_dispatch:
+
+# GitHub Packages requires packages:write on GITHUB_TOKEN; contents:read is
+# enough for actions/checkout. Everything else stays at the default (none).
+permissions:
+  contents: read
+  packages: write
+
+env:
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # Compute the published version. Reads "major.minor" from the csproj
+      # <Version>, ignores its patch component, then appends github.run_number
+      # so the value is monotonically increasing across runs without ever
+      # touching tracked files.
+      - name: Compute package version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="$(grep -oPm1 '(?<=<Version>)[^<]+' UniversalSceneDescription.csproj)"
+          major_minor="$(echo "$base" | awk -F. '{ printf "%s.%s", $1, $2 }')"
+          version="${major_minor}.${{ github.run_number }}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Publishing UniversalSceneDescription version: $version"
+
+      # `dotnet pack` from the project root performs restore+build+pack in
+      # one shot; -p:Version overrides the csproj <Version> with the bumped
+      # value computed above, and the produced nupkg lands in bin/Release/.
+      - name: Pack
+        run: dotnet pack -c Release -p:Version=${{ steps.version.outputs.version }}
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: UniversalSceneDescription-nupkg-${{ steps.version.outputs.version }}
+          path: bin/Release/*.nupkg
+
+      # Publish to GitHub Packages. --skip-duplicate makes re-runs idempotent
+      # if a given version was already pushed.
+      - name: Push to GitHub Packages
+        run: |
+          dotnet nuget push "bin/Release/*.nupkg" \
+            --source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
+            --api-key "${{ secrets.GITHUB_TOKEN }}" \
+            --skip-duplicate
+
