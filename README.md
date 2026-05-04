@@ -3,9 +3,9 @@
 # Universal Scene Description for .NET
 
 [![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-UniversalSceneDescription-2dba4e?logo=github)](https://github.com/EggyStudio/UniversalSceneDescription/packages)
-[![License: MPL-2.0](https://img.shields.io/badge/License-MPL--2.0-brightgreen.svg)](LICENSE)
-[![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![Platform](https://img.shields.io/badge/platform-win--x64%20%7C%20linux--x64%20%7C%20osx--x64%20%7C%20osx--arm64-informational)](#supported-runtimes)
+[![.NET 10](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
+[![License: MPL-2.0](https://img.shields.io/badge/License-MPL--2.0-brightgreen.svg)](LICENSE)
 
 Pixar's [**OpenUSD**](https://openusd.org/) - Universal Scene Description - packaged
 as a single, drop-in NuGet for **.NET 10**. Bundles the managed bindings, the native
@@ -89,8 +89,9 @@ executable, or you ship your own USD build):
 ```
 
 ## Supported runtimes
+| Runtime Identifier (RID) | Status | Native assets path |
 |---|---|---|
-| `win-x64`   | ✅ Shipping              | `runtimes/win-x64/native/`   |
+| `win-x64`   | ✅ Shipping | `runtimes/win-x64/native/`   |
 | `linux-x64` | ✅ Shipping | `runtimes/linux-x64/native/` |
 | `osx-x64`   | ✅ Shipping | `runtimes/osx-x64/native/`   |
 | `osx-arm64` | ✅ Shipping | `runtimes/osx-arm64/native/` |
